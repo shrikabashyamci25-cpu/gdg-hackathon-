@@ -5,9 +5,8 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>NEBULA SCAN | Advanced Crypto Threat Intelligence</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;900&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <script id="tailwind-config">
       tailwind.config = {
         darkMode: "class",
@@ -118,6 +117,17 @@
             height: 2px;
             width: 100%;
         }
+        /* Loading spinner */
+        .spinner {
+            border: 3px solid rgba(21, 255, 209, 0.2);
+            border-top-color: #15ffd1;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="bg-background text-on-background font-body-md nebula-bg min-h-screen selection:bg-primary-container selection:text-on-primary-fixed">
@@ -129,26 +139,21 @@
 <nav class="hidden md:flex items-center gap-8 font-['Space_Grotesk'] tracking-tight">
 <a class="text-cyan-400 border-b-2 border-cyan-400 pb-1 font-medium" href="#">Dashboard</a>
 <a class="text-slate-400 font-medium hover:text-cyan-300 hover:bg-white/5 transition-all px-2 py-1 rounded" href="#">Scanner</a>
-<a class="text-slate-400 font-medium hover:text-cyan-300 hover:bg-white/5 transition-all px-2 py-1 rounded" href="#">History</a>
-<a class="text-slate-400 font-medium hover:text-cyan-300 hover:bg-white/5 transition-all px-2 py-1 rounded" href="#">Security</a>
+<a class="text-slate-400 font-medium hover:text-cyan-300 hover:bg-white/5 transition-all px-2 py-1 rounded" href="history.html">History</a>
+<a class="text-slate-400 font-medium hover:text-cyan-300 hover:bg-white/5 transition-all px-2 py-1 rounded" href="security.html">Security</a>
 </nav>
 <div class="flex items-center gap-6">
 <button class="text-slate-400 hover:text-cyan-400 transition-colors">
-<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="material-symbols-outlined">notifications</span>
 </button>
-<button class="text-slate-400 hover:text-cyan-400 transition-colors">
-<span class="material-symbols-outlined" data-icon="settings">settings</span>
-</button>
-<div class="w-10 h-10 rounded-full border border-primary-fixed/30 p-0.5 overflow-hidden">
-<img alt="User profile" class="w-full h-full object-cover rounded-full" data-alt="Close-up portrait of a professional digital security analyst with sharp features and a confident expression in cinematic blue lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCEjyOWnferALNOMVko7WwUbYBYknHT8ecaEP_w8EBrNUynZTuFWlc0tS6NHGj4N535BRwDROfE3IWNmW4WR8VyDiiQGSslRBT5lMOpyDRcdIe6PvDsMMwyPCEGAme6Qt4or0kx5CfzDJW4qx6zEOflldCtArWxbFBOsmf1Fq_1tyTkMfsiDD_jA7y2-GX3ZF7MjKfHyi1Nlrhe7mhY_Kn2jApy8otUD3GQXyuo_X8TPAuMLMCfihjsvbgZYUuP8Bh5y8Oe4TF1ePA"/>
-</div>
+<div class="w-10 h-10 rounded-full border border-primary-fixed/30 flex items-center justify-center bg-slate-800 text-cyan-400 font-bold text-sm">NS</div>
 </div>
 </header>
 <main class="relative pt-xl pb-xl px-margin max-w-[1440px] mx-auto">
 <!-- Hero Section -->
 <section class="flex flex-col items-center text-center space-y-md mb-xl">
 <div class="inline-flex items-center gap-xs px-sm py-1 rounded-full glass-panel border-primary-container/20 text-primary-fixed font-label-md uppercase mb-base">
-<span class="material-symbols-outlined text-[16px]" data-icon="verified_user">verified_user</span>
+<span class="material-symbols-outlined text-[16px]">verified_user</span>
                 System Status: Active Monitoring
             </div>
 <h1 class="font-h1 text-h1 text-primary max-w-4xl">
@@ -158,49 +163,59 @@
                 Advanced AI-powered URL and smart contract analysis to detect fraudulent entities before they compromise your wallet.
             </p>
 </section>
+
 <!-- Search Command Center -->
 <section class="relative z-10 flex justify-center mb-xl">
 <div class="w-full max-w-4xl glass-panel p-base rounded-xl glow-aquamarine border-primary-fixed/10">
 <div class="relative flex flex-col md:flex-row gap-base">
 <div class="flex-grow relative">
-<span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-primary-fixed opacity-60" data-icon="search">search</span>
-<input class="w-full pl-xl pr-md py-lg bg-surface-container-lowest/50 border border-outline-variant/30 rounded-lg text-primary focus:border-primary-fixed focus:ring-1 focus:ring-primary-fixed/50 transition-all font-mono-data outline-none placeholder:text-outline-variant" placeholder="Paste suspicious URL, dApp address or smart contract hash..." type="text"/>
+<span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-primary-fixed opacity-60">search</span>
+<input
+  id="urlInput"
+  class="w-full pl-xl pr-md py-lg bg-surface-container-lowest/50 border border-outline-variant/30 rounded-lg text-primary focus:border-primary-fixed focus:ring-1 focus:ring-primary-fixed/50 transition-all font-mono-data outline-none placeholder:text-outline-variant"
+  placeholder="Paste suspicious URL, dApp address or smart contract hash..."
+  type="text"
+/>
 </div>
-<button class="bg-primary-fixed text-on-primary-fixed font-h3 text-h3 px-xl py-lg rounded-lg hover:brightness-110 active:scale-95 transition-all shadow-[0_0_25px_rgba(0,255,209,0.4)] flex items-center justify-center gap-sm">
-                        Analyze
-                        <span class="material-symbols-outlined" data-icon="query_stats">query_stats</span>
+<button
+  id="analyzeBtn"
+  class="bg-primary-fixed text-on-primary-fixed font-h3 text-h3 px-xl py-lg rounded-lg hover:brightness-110 active:scale-95 transition-all shadow-[0_0_25px_rgba(0,255,209,0.4)] flex items-center justify-center gap-sm min-w-[160px]"
+>
+  <span id="btnLabel">Analyze</span>
+  <span id="btnIcon" class="material-symbols-outlined">query_stats</span>
+  <span id="btnSpinner" class="spinner hidden"></span>
 </button>
 </div>
+
+<!-- Error message -->
+<div id="errorMsg" class="hidden mt-sm px-md py-sm bg-error/10 border border-error/30 rounded-lg text-error text-sm"></div>
 </div>
-<!-- Decorative scan animation effect -->
 <div class="absolute -inset-4 bg-primary-fixed/5 blur-3xl -z-10 rounded-full"></div>
 </section>
+
 <!-- Value Propositions - Bento Grid Style -->
 <section class="grid grid-cols-1 md:grid-cols-3 gap-md">
-<!-- Safety First -->
 <div class="glass-panel p-lg rounded-xl border-white/5 hover:border-primary-fixed/20 transition-all group">
 <div class="w-12 h-12 rounded-lg bg-secondary-container/20 flex items-center justify-center mb-md group-hover:bg-primary-container/20 transition-colors">
-<span class="material-symbols-outlined text-secondary" data-icon="security">security</span>
+<span class="material-symbols-outlined text-secondary">security</span>
 </div>
 <h3 class="font-h3 text-h3 text-primary mb-sm">Safety first</h3>
 <p class="text-on-surface-variant leading-relaxed">
                     Real-time database cross-referencing against known malicious signatures and honey-pot traps across 15+ blockchains.
                 </p>
 </div>
-<!-- Instant Analysis -->
 <div class="glass-panel p-lg rounded-xl border-white/5 hover:border-primary-fixed/20 transition-all group">
 <div class="w-12 h-12 rounded-lg bg-secondary-container/20 flex items-center justify-center mb-md group-hover:bg-primary-container/20 transition-colors">
-<span class="material-symbols-outlined text-secondary" data-icon="bolt">bolt</span>
+<span class="material-symbols-outlined text-secondary">bolt</span>
 </div>
 <h3 class="font-h3 text-h3 text-primary mb-sm">Instant Analysis</h3>
 <p class="text-on-surface-variant leading-relaxed">
-                    Neural network processing delivers complex threat scoring in under 800ms, ensuring you never miss a safe entry point.
+                    Multi-signal processing — SSL, WHOIS, blacklists, and keyword patterns — delivers threat scoring in under 5 seconds.
                 </p>
 </div>
-<!-- Deep Web Scanning -->
 <div class="glass-panel p-lg rounded-xl border-white/5 hover:border-primary-fixed/20 transition-all group">
 <div class="w-12 h-12 rounded-lg bg-secondary-container/20 flex items-center justify-center mb-md group-hover:bg-primary-container/20 transition-colors">
-<span class="material-symbols-outlined text-secondary" data-icon="radar">radar</span>
+<span class="material-symbols-outlined text-secondary">radar</span>
 </div>
 <h3 class="font-h3 text-h3 text-primary mb-sm">Deep Web Scanning</h3>
 <p class="text-on-surface-variant leading-relaxed">
@@ -208,38 +223,38 @@
                 </p>
 </div>
 </section>
+
 <!-- Social Proof / Trust Section -->
 <section class="mt-xl text-center">
 <p class="font-label-md text-outline mb-md uppercase tracking-[0.2em]">Securing transactions across</p>
 <div class="flex flex-wrap justify-center items-center gap-xl opacity-40 grayscale hover:grayscale-0 transition-all">
 <div class="flex items-center gap-xs font-h3 text-h3 text-primary">
-<span class="material-symbols-outlined" data-icon="database">database</span>
-                    Ethereum
-                </div>
+<span class="material-symbols-outlined">database</span>Ethereum
+</div>
 <div class="flex items-center gap-xs font-h3 text-h3 text-primary">
-<span class="material-symbols-outlined" data-icon="token">token</span>
-                    Solana
-                </div>
+<span class="material-symbols-outlined">token</span>Solana
+</div>
 <div class="flex items-center gap-xs font-h3 text-h3 text-primary">
-<span class="material-symbols-outlined" data-icon="account_balance_wallet">account_balance_wallet</span>
-                    Polygon
-                </div>
+<span class="material-symbols-outlined">account_balance_wallet</span>Polygon
+</div>
 <div class="flex items-center gap-xs font-h3 text-h3 text-primary">
-<span class="material-symbols-outlined" data-icon="hub">hub</span>
-                    Cosmos
-                </div>
+<span class="material-symbols-outlined">hub</span>Cosmos
+</div>
 </div>
 </section>
 </main>
-<!-- SideNav (Mobile Only Toggle) -->
+
+<!-- Mobile FAB -->
 <div class="md:hidden fixed bottom-6 right-6 z-[60]">
 <button class="w-14 h-14 bg-primary-container rounded-full shadow-xl flex items-center justify-center text-on-primary-container active:scale-95 transition-transform">
-<span class="material-symbols-outlined" data-icon="menu">menu</span>
+<span class="material-symbols-outlined">menu</span>
 </button>
 </div>
+
 <!-- Background Decorative Elements -->
 <div class="fixed top-1/4 -left-1/4 w-[50%] h-[50%] bg-secondary-container/10 blur-[120px] -z-10 rounded-full"></div>
 <div class="fixed bottom-0 -right-1/4 w-[40%] h-[40%] bg-primary-container/5 blur-[120px] -z-10 rounded-full"></div>
+
 <footer class="mt-xl py-xl px-margin border-t border-white/5 bg-slate-950/30">
 <div class="max-w-[1440px] mx-auto grid grid-cols-1 md:grid-cols-4 gap-xl">
 <div class="col-span-1 md:col-span-2">
@@ -247,12 +262,12 @@
 <p class="mt-md text-on-surface-variant max-w-sm">
                     The next generation of cryptographic security. We monitor the stars so your assets stay in orbit.
                 </p>
+<p class="mt-sm text-xs text-slate-600">Disclaimer: For informational purposes only. Always do your own research before investing.</p>
 </div>
 <div class="space-y-sm">
 <h4 class="font-h3 text-body-md text-primary">Resources</h4>
 <nav class="flex flex-col gap-xs text-on-surface-variant">
-<a class="hover:text-primary-fixed transition-colors" href="#">Documentation</a>
-<a class="hover:text-primary-fixed transition-colors" href="#">API Reference</a>
+<a class="hover:text-primary-fixed transition-colors" href="/docs" target="_blank">API Docs</a>
 <a class="hover:text-primary-fixed transition-colors" href="#">Security Reports</a>
 </nav>
 </div>
@@ -261,7 +276,6 @@
 <nav class="flex flex-col gap-xs text-on-surface-variant">
 <a class="hover:text-primary-fixed transition-colors" href="#">Privacy Policy</a>
 <a class="hover:text-primary-fixed transition-colors" href="#">Terms of Service</a>
-<a class="hover:text-primary-fixed transition-colors" href="#">Cookie Policy</a>
 </nav>
 </div>
 </div>
@@ -269,8 +283,119 @@
 <span>© 2024 NEBULA SCAN SECURITY. ALL SYSTEMS NOMINAL.</span>
 <div class="flex gap-lg">
 <span class="flex items-center gap-xs"><span class="w-2 h-2 rounded-full bg-primary-fixed animate-pulse"></span> Network Stable</span>
-<span>Latency: 12ms</span>
+<span id="apiStatus">API: Checking...</span>
 </div>
 </div>
 </footer>
+
+<!-- ── JavaScript: API integration ─────────────────────────────────────── -->
+<script>
+  // TODO: Replace with your Antigravity backend URL when deployed
+  // e.g. const API_BASE = 'https://your-app.antigravity.dev';
+  const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:8000'
+    : window.location.origin;
+
+  const urlInput   = document.getElementById('urlInput');
+  const analyzeBtn = document.getElementById('analyzeBtn');
+  const btnLabel   = document.getElementById('btnLabel');
+  const btnIcon    = document.getElementById('btnIcon');
+  const btnSpinner = document.getElementById('btnSpinner');
+  const errorMsg   = document.getElementById('errorMsg');
+
+  // ── Health check ────────────────────────────────────────────────────────
+  async function checkApiHealth() {
+    const el = document.getElementById('apiStatus');
+    try {
+      const r = await fetch(`${API_BASE}/health`, { signal: AbortSignal.timeout(3000) });
+      if (r.ok) {
+        el.textContent = 'API: Online';
+        el.classList.add('text-primary-fixed');
+      } else {
+        el.textContent = 'API: Degraded';
+      }
+    } catch {
+      el.textContent = 'API: Offline — start the backend';
+      el.classList.add('text-error');
+    }
+  }
+  checkApiHealth();
+
+  // ── Submit handler ──────────────────────────────────────────────────────
+  async function submitAnalysis() {
+    const url = urlInput.value.trim();
+
+    // Basic client-side validation
+    if (!url) {
+      showError('Please paste a URL to analyze.');
+      return;
+    }
+    if (url.length > 2048) {
+      showError('URL is too long (max 2048 characters).');
+      return;
+    }
+
+    setLoading(true);
+    clearError();
+
+    try {
+      const response = await fetch(`${API_BASE}/api/v1/analyze/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+        signal: AbortSignal.timeout(30000),
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.detail || `Server error: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Store result and navigate to results page
+      sessionStorage.setItem('scanResult', JSON.stringify(data));
+      window.location.href = 'results_UI.html';
+
+    } catch (err) {
+      if (err.name === 'TimeoutError') {
+        showError('Analysis timed out. Please check your connection and try again.');
+      } else if (err.message.includes('fetch')) {
+        showError('Cannot reach the backend. Make sure it is running on port 8000.');
+      } else {
+        showError(err.message || 'An unexpected error occurred.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // ── UI helpers ──────────────────────────────────────────────────────────
+  function setLoading(on) {
+    analyzeBtn.disabled = on;
+    btnLabel.textContent = on ? 'Scanning...' : 'Analyze';
+    btnIcon.classList.toggle('hidden', on);
+    btnSpinner.classList.toggle('hidden', !on);
+  }
+
+  function showError(msg) {
+    errorMsg.textContent = msg;
+    errorMsg.classList.remove('hidden');
+  }
+
+  function clearError() {
+    errorMsg.textContent = '';
+    errorMsg.classList.add('hidden');
+  }
+
+  // ── Event listeners ─────────────────────────────────────────────────────
+  analyzeBtn.addEventListener('click', submitAnalysis);
+
+  urlInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') submitAnalysis();
+  });
+
+  // Clear error on input change
+  urlInput.addEventListener('input', clearError);
+</script>
 </body></html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NEBULA SCAN | Security</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "surface-container-lowest": "#010f1f",
+          "surface-container": "#122131",
+          "surface-container-high": "#1c2b3c",
+          "on-surface": "#d4e4fa",
+          "on-surface-variant": "#b9cbc3",
+          "primary": "#fffffd",
+          "primary-fixed": "#15ffd1",
+          "primary-container": "#00ffd1",
+          "on-primary-fixed": "#002019",
+          "secondary-container": "#5507e9",
+          "outline-variant": "#3a4a44",
+          "background": "#051424",
+          "error": "#ffb4ab",
+        }
+      }
+    }
+  }
+</script>
+<style>
+  .glass-panel {
+    background: rgba(13, 28, 45, 0.4);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  }
+  .nebula-bg {
+    background: radial-gradient(circle at 50% -20%, #1e0060 0%, #051424 60%);
+  }
+</style>
+</head>
+<body class="bg-background text-on-surface font-['Inter'] nebula-bg min-h-screen">
+
+<!-- Nav -->
+<header class="flex justify-between items-center px-8 py-4 w-full sticky top-0 z-50 bg-slate-950/50 backdrop-blur-xl border-b border-white/10 shadow-2xl">
+  <div class="flex items-center gap-4">
+    <a href="home_mobile_UI.html" class="text-2xl font-black tracking-tighter text-cyan-400 drop-shadow-[0_0_8px_rgba(0,255,209,0.5)] font-['Space_Grotesk']">NEBULA SCAN</a>
+  </div>
+  <nav class="hidden md:flex items-center gap-8 font-['Space_Grotesk'] tracking-tight">
+    <a class="text-slate-400 font-medium hover:text-cyan-300 transition-all px-2 py-1 rounded" href="home_mobile_UI.html">Dashboard</a>
+    <a class="text-slate-400 font-medium hover:text-cyan-300 transition-all px-2 py-1 rounded" href="home_mobile_UI.html">Scanner</a>
+    <a class="text-slate-400 font-medium hover:text-cyan-300 transition-all px-2 py-1 rounded" href="history.html">History</a>
+    <a class="text-cyan-400 border-b-2 border-cyan-400 pb-1 font-medium" href="#">Security</a>
+  </nav>
+  <div class="w-10 h-10 rounded-full border border-cyan-400/30 flex items-center justify-center bg-slate-800 text-cyan-400 font-bold text-sm font-['Space_Grotesk']">NS</div>
+</header>
+
+<main class="max-w-5xl mx-auto px-6 py-12">
+  <!-- Header -->
+  <div class="mb-10">
+    <h1 class="text-4xl font-black tracking-tight text-white font-['Space_Grotesk'] mb-2">Trusted Platforms</h1>
+    <p class="text-on-surface-variant">Regulated, verified exchanges you can safely use instead of scam sites.</p>
+  </div>
+
+  <!-- Tips banner -->
+  <div class="glass-panel rounded-xl p-6 mb-10 border-l-4 border-cyan-400">
+    <h2 class="font-['Space_Grotesk'] font-bold text-cyan-400 mb-3 flex items-center gap-2">
+      <span class="material-symbols-outlined text-[20px]">shield</span>
+      Golden Rules to Stay Safe
+    </h2>
+    <ul class="space-y-2 text-on-surface-variant text-sm">
+      <li class="flex items-start gap-2"><span class="text-cyan-400 mt-0.5">✓</span> Always verify the URL — bookmark official sites, never click links in DMs or emails.</li>
+      <li class="flex items-start gap-2"><span class="text-cyan-400 mt-0.5">✓</span> Never share your private key or seed phrase with anyone, ever.</li>
+      <li class="flex items-start gap-2"><span class="text-cyan-400 mt-0.5">✓</span> Enable 2FA on every exchange account.</li>
+      <li class="flex items-start gap-2"><span class="text-cyan-400 mt-0.5">✓</span> If a site promises guaranteed returns or free crypto — it's a scam.</li>
+      <li class="flex items-start gap-2"><span class="text-cyan-400 mt-0.5">✓</span> Scan any unknown crypto URL with NebulaScan before interacting.</li>
+    </ul>
+  </div>
+
+  <!-- Platforms -->
+  <div id="platformList" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="glass-panel rounded-xl p-6 text-center text-on-surface-variant col-span-2">Loading trusted platforms...</div>
+  </div>
+</main>
+
+<div class="fixed top-1/4 -left-1/4 w-[50%] h-[50%] bg-secondary-container/10 blur-[120px] -z-10 rounded-full"></div>
+<div class="fixed bottom-0 -right-1/4 w-[40%] h-[40%] bg-primary-container/5 blur-[120px] -z-10 rounded-full"></div>
+
+<script>
+  const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:8000'
+    : window.location.origin;
+
+  async function loadPlatforms() {
+    try {
+      const r = await fetch(`${API_BASE}/api/v1/platforms/`);
+      const platforms = await r.json();
+      const list = document.getElementById('platformList');
+
+      if (!platforms || platforms.length === 0) {
+        list.innerHTML = '<div class="glass-panel rounded-xl p-6 text-center text-on-surface-variant col-span-2">No platforms found.</div>';
+        return;
+      }
+
+      list.innerHTML = platforms.map(p => `
+        <div class="glass-panel rounded-xl p-6 hover:border-cyan-400/30 transition-all border border-white/10">
+          <div class="flex items-start justify-between mb-4">
+            <div>
+              <h3 class="text-xl font-bold text-white font-['Space_Grotesk']">${p.name}</h3>
+              <span class="text-xs px-2 py-0.5 rounded-full mt-1 inline-block ${p.is_regulated ? 'bg-emerald-400/10 text-emerald-400 border border-emerald-400/30' : 'bg-yellow-400/10 text-yellow-400 border border-yellow-400/30'}">
+                ${p.is_regulated ? 'Regulated' : 'Decentralized'}
+              </span>
+            </div>
+            <span class="text-xs text-on-surface-variant bg-white/5 px-2 py-1 rounded">${p.region}</span>
+          </div>
+          <p class="text-on-surface-variant text-sm mb-4">${p.description}</p>
+          <details class="mb-4">
+            <summary class="text-cyan-400 text-sm cursor-pointer hover:text-cyan-300 font-['Space_Grotesk'] font-medium">Why it's safe</summary>
+            <p class="text-on-surface-variant text-sm mt-2 pl-2 border-l border-cyan-400/30">${p.why_safe}</p>
+          </details>
+          <details class="mb-5">
+            <summary class="text-cyan-400 text-sm cursor-pointer hover:text-cyan-300 font-['Space_Grotesk'] font-medium">How to get started</summary>
+            <p class="text-on-surface-variant text-sm mt-2 pl-2 border-l border-cyan-400/30 whitespace-pre-line">${p.how_to_use}</p>
+          </details>
+          <a href="${p.url}" target="_blank" rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 px-4 py-2 bg-cyan-400/10 text-cyan-400 border border-cyan-400/30 rounded-lg text-sm font-['Space_Grotesk'] font-medium hover:bg-cyan-400/20 transition-all">
+            Visit ${p.name}
+            <span class="material-symbols-outlined text-[16px]">open_in_new</span>
+          </a>
+        </div>
+      `).join('');
+    } catch {
+      document.getElementById('platformList').innerHTML = '<div class="glass-panel rounded-xl p-6 text-center text-red-400 col-span-2">Failed to load. Is the backend running?</div>';
+    }
+  }
+
+  loadPlatforms();
+</script>
+</body>
+</html>

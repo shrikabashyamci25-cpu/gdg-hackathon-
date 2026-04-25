@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NEBULA SCAN | Scan History</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "surface-container-lowest": "#010f1f",
+          "surface-container": "#122131",
+          "surface-container-high": "#1c2b3c",
+          "surface-container-highest": "#273647",
+          "on-surface": "#d4e4fa",
+          "on-surface-variant": "#b9cbc3",
+          "primary": "#fffffd",
+          "primary-fixed": "#15ffd1",
+          "primary-container": "#00ffd1",
+          "on-primary-fixed": "#002019",
+          "secondary-container": "#5507e9",
+          "outline-variant": "#3a4a44",
+          "outline": "#83958d",
+          "background": "#051424",
+          "error": "#ffb4ab",
+        }
+      }
+    }
+  }
+</script>
+<style>
+  .glass-panel {
+    background: rgba(13, 28, 45, 0.4);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  }
+  .nebula-bg {
+    background: radial-gradient(circle at 50% -20%, #1e0060 0%, #051424 60%);
+  }
+</style>
+</head>
+<body class="bg-background text-on-surface font-['Inter'] nebula-bg min-h-screen">
+
+<!-- Nav -->
+<header class="flex justify-between items-center px-8 py-4 w-full sticky top-0 z-50 bg-slate-950/50 backdrop-blur-xl border-b border-white/10 shadow-2xl">
+  <div class="flex items-center gap-4">
+    <a href="home_mobile_UI.html" class="text-2xl font-black tracking-tighter text-cyan-400 drop-shadow-[0_0_8px_rgba(0,255,209,0.5)] font-['Space_Grotesk']">NEBULA SCAN</a>
+  </div>
+  <nav class="hidden md:flex items-center gap-8 font-['Space_Grotesk'] tracking-tight">
+    <a class="text-slate-400 font-medium hover:text-cyan-300 transition-all px-2 py-1 rounded" href="home_mobile_UI.html">Dashboard</a>
+    <a class="text-slate-400 font-medium hover:text-cyan-300 transition-all px-2 py-1 rounded" href="home_mobile_UI.html">Scanner</a>
+    <a class="text-cyan-400 border-b-2 border-cyan-400 pb-1 font-medium" href="#">History</a>
+    <a class="text-slate-400 font-medium hover:text-cyan-300 transition-all px-2 py-1 rounded" href="security.html">Security</a>
+  </nav>
+  <div class="w-10 h-10 rounded-full border border-cyan-400/30 flex items-center justify-center bg-slate-800 text-cyan-400 font-bold text-sm font-['Space_Grotesk']">NS</div>
+</header>
+
+<main class="max-w-5xl mx-auto px-6 py-12">
+  <!-- Header -->
+  <div class="mb-10">
+    <h1 class="text-4xl font-black tracking-tight text-white font-['Space_Grotesk'] mb-2">Scan History</h1>
+    <p class="text-on-surface-variant">All URLs you've analyzed with NebulaScan.</p>
+  </div>
+
+  <!-- Stats row -->
+  <div id="statsRow" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10"></div>
+
+  <!-- Table -->
+  <div class="glass-panel rounded-xl overflow-hidden">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-white/10">
+      <h2 class="font-['Space_Grotesk'] font-semibold text-white">Recent Scans</h2>
+      <span id="totalCount" class="text-sm text-on-surface-variant"></span>
+    </div>
+    <div id="scanList" class="divide-y divide-white/5">
+      <div class="px-6 py-10 text-center text-on-surface-variant">Loading...</div>
+    </div>
+  </div>
+</main>
+
+<div class="fixed top-1/4 -left-1/4 w-[50%] h-[50%] bg-secondary-container/10 blur-[120px] -z-10 rounded-full"></div>
+<div class="fixed bottom-0 -right-1/4 w-[40%] h-[40%] bg-primary-container/5 blur-[120px] -z-10 rounded-full"></div>
+
+<script>
+  const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:8000'
+    : window.location.origin;
+
+  function scoreColor(score) {
+    if (score >= 70) return 'text-emerald-400';
+    if (score >= 40) return 'text-yellow-400';
+    return 'text-red-400';
+  }
+
+  function verdictBadge(status) {
+    if (status === 'Safe') return '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-400/10 text-emerald-400 border border-emerald-400/30">SAFE</span>';
+    if (status === 'Medium Risk') return '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-yellow-400/10 text-yellow-400 border border-yellow-400/30">MEDIUM RISK</span>';
+    return '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-red-400/10 text-red-400 border border-red-400/30">HIGH RISK</span>';
+  }
+
+  function formatDate(dt) {
+    if (!dt) return '—';
+    return new Date(dt).toLocaleString();
+  }
+
+  async function loadStats() {
+    try {
+      const r = await fetch(`${API_BASE}/api/v1/scans/stats`);
+      const s = await r.json();
+      document.getElementById('statsRow').innerHTML = `
+        <div class="glass-panel rounded-xl p-5 text-center">
+          <div class="text-3xl font-black text-white font-['Space_Grotesk']">${s.total}</div>
+          <div class="text-xs text-on-surface-variant mt-1 uppercase tracking-widest">Total Scans</div>
+        </div>
+        <div class="glass-panel rounded-xl p-5 text-center">
+          <div class="text-3xl font-black text-emerald-400 font-['Space_Grotesk']">${s.safe_count}</div>
+          <div class="text-xs text-on-surface-variant mt-1 uppercase tracking-widest">Safe</div>
+        </div>
+        <div class="glass-panel rounded-xl p-5 text-center">
+          <div class="text-3xl font-black text-yellow-400 font-['Space_Grotesk']">${s.medium_risk_count}</div>
+          <div class="text-xs text-on-surface-variant mt-1 uppercase tracking-widest">Medium Risk</div>
+        </div>
+        <div class="glass-panel rounded-xl p-5 text-center">
+          <div class="text-3xl font-black text-red-400 font-['Space_Grotesk']">${s.high_risk_count}</div>
+          <div class="text-xs text-on-surface-variant mt-1 uppercase tracking-widest">High Risk</div>
+        </div>
+      `;
+    } catch {}
+  }
+
+  async function loadScans() {
+    try {
+      const r = await fetch(`${API_BASE}/api/v1/scans/?limit=50`);
+      const data = await r.json();
+      const list = document.getElementById('scanList');
+      document.getElementById('totalCount').textContent = `${data.total} total`;
+
+      if (!data.items || data.items.length === 0) {
+        list.innerHTML = '<div class="px-6 py-10 text-center text-on-surface-variant">No scans yet. Go scan a URL!</div>';
+        return;
+      }
+
+      list.innerHTML = data.items.map(scan => `
+        <div class="flex items-center gap-4 px-6 py-4 hover:bg-white/5 transition-colors">
+          <div class="flex-1 min-w-0">
+            <div class="text-sm text-white font-['Space_Grotesk'] truncate">${scan.url}</div>
+            <div class="text-xs text-on-surface-variant mt-0.5">${formatDate(scan.scanned_at)}</div>
+          </div>
+          <div class="flex items-center gap-4 shrink-0">
+            <span class="text-2xl font-black font-['Space_Grotesk'] ${scoreColor(scan.trust_score)}">${scan.trust_score}</span>
+            ${verdictBadge(scan.status)}
+          </div>
+        </div>
+      `).join('');
+    } catch {
+      document.getElementById('scanList').innerHTML = '<div class="px-6 py-10 text-center text-red-400">Failed to load scans. Is the backend running?</div>';
+    }
+  }
+
+  loadStats();
+  loadScans();
+</script>
+</body>
+</html>
