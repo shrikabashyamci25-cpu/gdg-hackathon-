@@ -40,6 +40,7 @@ class Settings(BaseSettings):
     APP_NAME: str = "NebulaScan"
     DATABASE_URL: str = "sqlite+aiosqlite:///./nebula.db"
     GOOGLE_SAFE_BROWSING_KEY: str = ""
+    GEMINI_API_KEY: str = ""
     RATE_LIMIT_PER_MINUTE: int = 30
     CACHE_TTL_SECONDS: int = 86400
     ALLOWED_ORIGINS: list[str] = ["*"]
@@ -218,6 +219,13 @@ class ScanOut(BaseModel):
     scanned_at: datetime
     class Config:
         from_attributes = True
+
+class ChatMessage(BaseModel):
+    role: str
+    content: str
+
+class ChatRequest(BaseModel):
+    messages: list[ChatMessage]
 
 class RiskCalcRequest(BaseModel):
     portfolio_value: float = Field(..., gt=0)
@@ -453,12 +461,151 @@ app.add_middleware(
 )
 
 # ─────────────────────────────────────────────────────────────────────────────
+# BITCOIN TREND ENGINE
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _sma(prices: list[float], period: int) -> Optional[float]:
+    if len(prices) < period:
+        return None
+    return sum(prices[-period:]) / period
+
+def _rsi(prices: list[float], period: int = 14) -> Optional[float]:
+    if len(prices) < period + 1:
+        return None
+    gains, losses = [], []
+    for i in range(1, period + 1):
+        diff = prices[-period + i] - prices[-period + i - 1]
+        (gains if diff > 0 else losses).append(abs(diff))
+    avg_gain = sum(gains) / period if gains else 0
+    avg_loss = sum(losses) / period if losses else 0
+    if avg_loss == 0:
+        return 100.0
+    rs = avg_gain / avg_loss
+    return round(100 - (100 / (1 + rs)), 1)
+
+def _trend_signal(price: float, sma7: float, sma14: float, rsi: Optional[float]) -> dict:
+    bullish_points = 0
+    if price > sma7: bullish_points += 1
+    if sma7 > sma14: bullish_points += 1
+    if rsi and rsi < 70: bullish_points += 1
+    if rsi and rsi > 50: bullish_points += 1
+
+    if bullish_points >= 3:
+        return {"signal": "BULLISH", "color": "emerald", "advice": "Upward trend detected. Consider dollar-cost-averaging into trusted regulated exchanges."}
+    if bullish_points <= 1:
+        return {"signal": "BEARISH", "color": "red", "advice": "Downward trend detected. Wait for stabilisation or dollar-cost-average cautiously."}
+    return {"signal": "NEUTRAL", "color": "yellow", "advice": "Sideways market. Accumulate slowly on trusted platforms and avoid high-risk sites."}
+
+_btc_cache: dict = {}
+
+async def fetch_btc_trend() -> dict:
+    global _btc_cache
+    if _btc_cache and time.time() - _btc_cache.get("ts", 0) < 3600:
+        return _btc_cache["data"]
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            r = await client.get(
+                "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart",
+                params={"vs_currency": "usd", "days": "30", "interval": "daily"},
+                headers={"Accept": "application/json"},
+            )
+            r.raise_for_status()
+            prices = [p[1] for p in r.json().get("prices", [])]
+
+        if len(prices) < 15:
+            raise ValueError("Insufficient data")
+
+        current = prices[-1]
+        sma7  = _sma(prices, 7)
+        sma14 = _sma(prices, 14)
+        sma30 = _sma(prices, 30)
+        rsi   = _rsi(prices, 14)
+        change_7d = round((current - prices[-8]) / prices[-8] * 100, 2) if len(prices) >= 8 else None
+        signal = _trend_signal(current, sma7, sma14, rsi)
+
+        data = {
+            "price_usd": round(current, 2),
+            "change_7d_pct": change_7d,
+            "sma_7":  round(sma7, 2) if sma7 else None,
+            "sma_14": round(sma14, 2) if sma14 else None,
+            "sma_30": round(sma30, 2) if sma30 else None,
+            "rsi_14": rsi,
+            "signal": signal["signal"],
+            "signal_color": signal["color"],
+            "advice": signal["advice"],
+            "prices_30d": [round(p, 2) for p in prices[-30:]],
+            "source": "CoinGecko",
+            "updated_at": datetime.utcnow().isoformat(),
+        }
+        _btc_cache = {"ts": time.time(), "data": data}
+        return data
+    except Exception as e:
+        return {"error": str(e), "signal": "UNAVAILABLE", "advice": "Live data unavailable. Check back shortly."}
+
+# ─────────────────────────────────────────────────────────────────────────────
 # ROUTES — HEALTH
 # ─────────────────────────────────────────────────────────────────────────────
 
 @app.get("/health", tags=["Health"])
 async def health():
     return {"status": "ok", "app": settings.APP_NAME, "version": "1.0.0"}
+
+@app.get("/api/v1/bitcoin/trend", tags=["Bitcoin"])
+async def bitcoin_trend():
+    """Live Bitcoin trend analysis using SMA + RSI from CoinGecko."""
+    return await fetch_btc_trend()
+
+@app.post("/api/v1/chat", tags=["AI Chat"])
+async def chat(payload: ChatRequest):
+    """NebulaAI financial advisor powered by Google Gemini."""
+    api_key = settings.GEMINI_API_KEY
+    if not api_key:
+        raise HTTPException(503, "Gemini API key not configured. Add GEMINI_API_KEY to your .env file.")
+
+    system_prompt = (
+        "You are NebulaAI, a crypto safety and financial advisor built into NebulaScan — "
+        "a fraud detection tool for cryptocurrency websites. "
+        "Your role is to help users make safer crypto investment decisions. You:\n"
+        "- Explain crypto concepts clearly and simply\n"
+        "- Warn about common scams: rug pulls, phishing, fake exchanges, pump-and-dump\n"
+        "- Give general investment safety advice: diversification, position sizing, 2FA, hardware wallets\n"
+        "- Help users understand NebulaScan trust scores and risk flags\n"
+        "- Always emphasise DYOR (Do Your Own Research)\n"
+        "- Never give specific price predictions or guarantee returns\n"
+        "- Always remind users that crypto is high risk and they should never invest more than they can afford to lose\n"
+        "Keep responses concise, practical, and under 200 words. Use bullet points when helpful. "
+        "Never recommend specific tokens to buy."
+    )
+
+    gemini_messages = []
+    for msg in payload.messages[-10:]:
+        role = "user" if msg.role == "user" else "model"
+        gemini_messages.append({"role": role, "parts": [{"text": msg.content}]})
+
+    # Prepend system prompt as first user turn for compatibility
+    contents = [{"role": "user", "parts": [{"text": system_prompt}]}, {"role": "model", "parts": [{"text": "Understood! I'm NebulaAI, your crypto safety advisor. How can I help you today?"}]}]
+    contents += gemini_messages
+
+    body = {
+        "contents": contents,
+        "generationConfig": {"maxOutputTokens": 400},
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            r = await client.post(
+                f"https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key={api_key}",
+                json=body,
+            )
+            r.raise_for_status()
+            reply = r.json()["candidates"][0]["content"]["parts"][0]["text"]
+            return {"reply": reply}
+    except httpx.HTTPStatusError as e:
+        print(f"GEMINI ERROR {e.response.status_code}: {e.response.text}")
+        raise HTTPException(502, f"Gemini {e.response.status_code}: {e.response.text[:200]}")
+    except Exception as e:
+        print(f"GEMINI EXCEPTION: {e}")
+        raise HTTPException(502, f"AI service unavailable: {str(e)}")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # ROUTES — ANALYZE
@@ -677,6 +824,27 @@ async def history():
 async def security():
     from fastapi.responses import HTMLResponse
     return HTMLResponse(_read_html("security.html"))
+
+@app.get("/security-report.html", include_in_schema=False)
+async def security_report():
+    from fastapi.responses import HTMLResponse
+    return HTMLResponse(_read_html("security-report.html"))
+
+@app.get("/privacy-policy.html", include_in_schema=False)
+async def privacy_policy():
+    from fastapi.responses import HTMLResponse
+    return HTMLResponse(_read_html("privacy-policy.html"))
+
+@app.get("/terms.html", include_in_schema=False)
+async def terms():
+    from fastapi.responses import HTMLResponse
+    return HTMLResponse(_read_html("terms.html"))
+
+@app.get("/chatbot.js", include_in_schema=False)
+async def chatbot_js():
+    from fastapi.responses import Response
+    with open(os.path.join(_DIR, "chatbot.js"), encoding="utf-8") as f:
+        return Response(content=f.read(), media_type="application/javascript")
 
 if __name__ == "__main__":
     import uvicorn

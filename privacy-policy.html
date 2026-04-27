@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NEBULA SCAN | Privacy Policy</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<style>
+  body { background: radial-gradient(circle at 50% -20%, #1e0060 0%, #051424 60%); }
+  .glass-panel { background: rgba(13,28,45,0.4); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); }
+  h2 { font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: white; font-size: 1.1rem; margin-bottom: 0.75rem; }
+  p, li { color: #94a3b8; font-size: 0.9rem; line-height: 1.75; }
+  strong { color: #e2e8f0; }
+</style>
+</head>
+<body class="min-h-screen font-['Inter']">
+
+<header class="flex justify-between items-center px-8 py-4 sticky top-0 z-50 bg-slate-950/50 backdrop-blur-xl border-b border-white/10">
+  <a href="home_mobile_UI.html" class="text-2xl font-black tracking-tighter text-cyan-400 font-['Space_Grotesk']">NEBULA SCAN</a>
+  <nav class="hidden md:flex items-center gap-8 font-['Space_Grotesk'] tracking-tight">
+    <a class="text-slate-400 hover:text-cyan-300 transition-all px-2 py-1 rounded" href="home_mobile_UI.html">Dashboard</a>
+    <a class="text-slate-400 hover:text-cyan-300 transition-all px-2 py-1 rounded" href="history.html">History</a>
+    <a class="text-slate-400 hover:text-cyan-300 transition-all px-2 py-1 rounded" href="security.html">Security</a>
+  </nav>
+  <div class="w-10 h-10 rounded-full border border-cyan-400/30 flex items-center justify-center bg-slate-800 text-cyan-400 font-bold text-sm font-['Space_Grotesk']">NS</div>
+</header>
+
+<main class="max-w-3xl mx-auto px-6 py-14">
+  <div class="mb-10">
+    <h1 class="text-4xl font-black tracking-tight text-white font-['Space_Grotesk'] mb-2">Privacy Policy</h1>
+    <p class="text-slate-500 text-sm">Effective date: April 2026 · NebulaScan v1.0</p>
+  </div>
+
+  <div class="space-y-8">
+
+    <div class="glass-panel rounded-xl p-6">
+      <h2>1. What We Collect</h2>
+      <p>NebulaScan collects <strong>only the URL you submit</strong> for analysis. We record the URL, the resulting trust score, risk verdict, and the timestamp of the scan. We do <strong>not</strong> collect:</p>
+      <ul class="list-disc pl-5 mt-2 space-y-1">
+        <li>Your name, email, or any personal identifier</li>
+        <li>Your IP address (not stored in the database)</li>
+        <li>Browser fingerprints or device information</li>
+        <li>Cookies or persistent tracking tokens</li>
+      </ul>
+    </div>
+
+    <div class="glass-panel rounded-xl p-6">
+      <h2>2. How We Use Your Data</h2>
+      <p>Submitted URLs are used solely to:</p>
+      <ul class="list-disc pl-5 mt-2 space-y-1">
+        <li>Perform fraud and phishing analysis (SSL check, WHOIS lookup, blacklist check)</li>
+        <li>Return a trust score and risk verdict to you</li>
+        <li>Cache the result for 24 hours to improve performance for repeated queries</li>
+        <li>Display aggregate statistics (total scans, risk counts) on the dashboard</li>
+      </ul>
+      <p class="mt-3">We do <strong>not</strong> sell, share, or monetise your data in any form.</p>
+    </div>
+
+    <div class="glass-panel rounded-xl p-6">
+      <h2>3. Zero Trust Data Handling</h2>
+      <p>NebulaScan is built on Zero Trust principles for data handling:</p>
+      <ul class="list-disc pl-5 mt-2 space-y-1">
+        <li><strong>Anonymous by design</strong> — scan records carry no user identity. History cannot be traced back to any individual.</li>
+        <li><strong>sessionStorage only</strong> — scan results are passed between pages via <code class="bg-white/10 px-1 rounded text-cyan-300">sessionStorage</code>, which is automatically cleared when you close the browser tab. Nothing is written to <code class="bg-white/10 px-1 rounded text-cyan-300">localStorage</code> or cookies.</li>
+        <li><strong>Minimal retention</strong> — we retain only what is necessary to display history and statistics. No raw request logs are kept.</li>
+        <li><strong>Deletable history</strong> — scan records can be removed at any time via the API.</li>
+      </ul>
+    </div>
+
+    <div class="glass-panel rounded-xl p-6">
+      <h2>4. Third-Party Services</h2>
+      <p>When you submit a URL, NebulaScan may forward it to the following external services for analysis:</p>
+      <ul class="list-disc pl-5 mt-2 space-y-1">
+        <li><strong>Google Safe Browsing API</strong> — to check for known malware and phishing threats</li>
+        <li><strong>WHOIS lookup</strong> — to determine domain registration age</li>
+        <li><strong>SSL certificate check</strong> — performed directly against the target domain</li>
+        <li><strong>CoinGecko API</strong> — for Bitcoin market data (no URL data is sent)</li>
+      </ul>
+      <p class="mt-3">Each of these services has its own privacy policy. NebulaScan does not control what those services do with the data they receive.</p>
+    </div>
+
+    <div class="glass-panel rounded-xl p-6">
+      <h2>5. Data Storage</h2>
+      <p>Scan records are stored in a <strong>local SQLite database</strong> (<code class="bg-white/10 px-1 rounded text-cyan-300">nebula.db</code>) on the server. This database is not exposed to the internet and is accessible only by the server process running NebulaScan.</p>
+    </div>
+
+    <div class="glass-panel rounded-xl p-6">
+      <h2>6. Your Rights</h2>
+      <p>Because no personal data is collected, there is no personal profile to access, correct, or delete. If you wish to remove a specific scan record, it can be deleted via the scan history API. All scan data can be cleared entirely on request.</p>
+    </div>
+
+    <div class="glass-panel rounded-xl p-6">
+      <h2>7. Changes to This Policy</h2>
+      <p>This policy may be updated as the product evolves. The effective date at the top of this page will reflect the latest version. Continued use of NebulaScan after changes constitutes acceptance of the updated policy.</p>
+    </div>
+
+  </div>
+
+  <p class="text-xs text-slate-600 text-center mt-10">NebulaScan · For informational and educational purposes only.</p>
+</main>
+<script src="/chatbot.js"></script>
+</body>
+</html>

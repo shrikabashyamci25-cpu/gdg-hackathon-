@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NEBULA SCAN | Security Report</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<style>
+  body { background: radial-gradient(circle at 50% -20%, #1e0060 0%, #051424 60%); }
+  .glass-panel { background: rgba(13,28,45,0.4); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); }
+</style>
+</head>
+<body class="min-h-screen text-slate-200 font-['Inter']">
+
+<header class="flex justify-between items-center px-8 py-4 sticky top-0 z-50 bg-slate-950/50 backdrop-blur-xl border-b border-white/10">
+  <a href="home_mobile_UI.html" class="text-2xl font-black tracking-tighter text-cyan-400 font-['Space_Grotesk']">NEBULA SCAN</a>
+  <nav class="hidden md:flex items-center gap-8 font-['Space_Grotesk'] tracking-tight">
+    <a class="text-slate-400 hover:text-cyan-300 transition-all px-2 py-1 rounded" href="home_mobile_UI.html">Dashboard</a>
+    <a class="text-slate-400 hover:text-cyan-300 transition-all px-2 py-1 rounded" href="history.html">History</a>
+    <a class="text-slate-400 hover:text-cyan-300 transition-all px-2 py-1 rounded" href="security.html">Security</a>
+  </nav>
+  <div class="w-10 h-10 rounded-full border border-cyan-400/30 flex items-center justify-center bg-slate-800 text-cyan-400 font-bold text-sm font-['Space_Grotesk']">NS</div>
+</header>
+
+<main class="max-w-4xl mx-auto px-6 py-14">
+
+  <div class="mb-10">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-400/10 border border-emerald-400/30 text-emerald-400 text-xs font-['Space_Grotesk'] uppercase tracking-widest mb-4">
+      <span class="material-symbols-outlined text-[14px]">verified_user</span> Zero Trust Architecture
+    </div>
+    <h1 class="text-4xl font-black tracking-tight text-white font-['Space_Grotesk'] mb-3">Security Report</h1>
+    <p class="text-slate-400 max-w-2xl">How NebulaScan protects users and their scan history through Zero Trust security principles — where no request, user, or data source is trusted by default.</p>
+  </div>
+
+  <!-- Zero Trust Overview -->
+  <div class="glass-panel rounded-xl p-6 mb-8 border-l-4 border-cyan-400">
+    <h2 class="text-lg font-bold text-white font-['Space_Grotesk'] mb-2 flex items-center gap-2">
+      <span class="material-symbols-outlined text-cyan-400">shield</span> What is Zero Trust?
+    </h2>
+    <p class="text-slate-400 text-sm leading-relaxed">
+      Zero Trust means <strong class="text-white">never trust, always verify</strong>. Every request — whether from a browser, an API call, or an external data source — is treated as potentially hostile. NebulaScan applies this principle across every layer: input validation, rate limiting, data isolation, and anonymous history storage.
+    </p>
+  </div>
+
+  <!-- Controls grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+
+    <div class="glass-panel rounded-xl p-5">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-9 h-9 rounded-lg bg-cyan-400/10 flex items-center justify-center">
+          <span class="material-symbols-outlined text-cyan-400 text-[18px]">speed</span>
+        </div>
+        <h3 class="font-bold text-white font-['Space_Grotesk']">Rate Limiting</h3>
+      </div>
+      <p class="text-slate-400 text-sm leading-relaxed">Every IP is capped at <strong class="text-white">20 analysis requests per minute</strong> using SlowAPI. No source — not even internal — is trusted with unlimited access. Exceeding the limit returns HTTP 429.</p>
+      <div class="mt-3 text-xs font-['Space_Grotesk'] text-emerald-400 bg-emerald-400/10 px-3 py-1.5 rounded-lg inline-block">Zero Trust Control: Assume every caller could be malicious</div>
+    </div>
+
+    <div class="glass-panel rounded-xl p-5">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-9 h-9 rounded-lg bg-cyan-400/10 flex items-center justify-center">
+          <span class="material-symbols-outlined text-cyan-400 text-[18px]">rule</span>
+        </div>
+        <h3 class="font-bold text-white font-['Space_Grotesk']">Input Validation</h3>
+      </div>
+      <p class="text-slate-400 text-sm leading-relaxed">All URLs are validated by <strong class="text-white">Pydantic v2 schemas</strong> before any processing begins. Length is capped at 2048 characters. Malformed input is rejected immediately — never passed downstream.</p>
+      <div class="mt-3 text-xs font-['Space_Grotesk'] text-emerald-400 bg-emerald-400/10 px-3 py-1.5 rounded-lg inline-block">Zero Trust Control: Validate every input at the boundary</div>
+    </div>
+
+    <div class="glass-panel rounded-xl p-5">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-9 h-9 rounded-lg bg-cyan-400/10 flex items-center justify-center">
+          <span class="material-symbols-outlined text-cyan-400 text-[18px]">storage</span>
+        </div>
+        <h3 class="font-bold text-white font-['Space_Grotesk']">Anonymous History Storage</h3>
+      </div>
+      <p class="text-slate-400 text-sm leading-relaxed">Scan history stores only the <strong class="text-white">URL, score, and timestamp</strong>. No user identity, IP address, cookies, or session tokens are ever recorded. History is fully anonymous — no one can be linked to a scan.</p>
+      <div class="mt-3 text-xs font-['Space_Grotesk'] text-emerald-400 bg-emerald-400/10 px-3 py-1.5 rounded-lg inline-block">Zero Trust Control: Minimise data collected to minimise exposure</div>
+    </div>
+
+    <div class="glass-panel rounded-xl p-5">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-9 h-9 rounded-lg bg-cyan-400/10 flex items-center justify-center">
+          <span class="material-symbols-outlined text-cyan-400 text-[18px]">database</span>
+        </div>
+        <h3 class="font-bold text-white font-['Space_Grotesk']">SQL Injection Prevention</h3>
+      </div>
+      <p class="text-slate-400 text-sm leading-relaxed">All database access goes through <strong class="text-white">SQLAlchemy ORM with parameterised queries</strong>. Raw SQL is never constructed from user input. The database layer treats every value as untrusted data.</p>
+      <div class="mt-3 text-xs font-['Space_Grotesk'] text-emerald-400 bg-emerald-400/10 px-3 py-1.5 rounded-lg inline-block">Zero Trust Control: Never trust data from the client in queries</div>
+    </div>
+
+    <div class="glass-panel rounded-xl p-5">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-9 h-9 rounded-lg bg-cyan-400/10 flex items-center justify-center">
+          <span class="material-symbols-outlined text-cyan-400 text-[18px]">key_off</span>
+        </div>
+        <h3 class="font-bold text-white font-['Space_Grotesk']">No Client-Side Secrets</h3>
+      </div>
+      <p class="text-slate-400 text-sm leading-relaxed">API keys (Google Safe Browsing, etc.) are loaded server-side via <strong class="text-white">environment variables</strong> only. The browser never receives any secret. If no key is configured, the check gracefully degrades instead of exposing credentials.</p>
+      <div class="mt-3 text-xs font-['Space_Grotesk'] text-emerald-400 bg-emerald-400/10 px-3 py-1.5 rounded-lg inline-block">Zero Trust Control: Secrets never leave the server boundary</div>
+    </div>
+
+    <div class="glass-panel rounded-xl p-5">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-9 h-9 rounded-lg bg-cyan-400/10 flex items-center justify-center">
+          <span class="material-symbols-outlined text-cyan-400 text-[18px]">timer</span>
+        </div>
+        <h3 class="font-bold text-white font-['Space_Grotesk']">External API Timeouts</h3>
+      </div>
+      <p class="text-slate-400 text-sm leading-relaxed">All calls to external services (Google Safe Browsing, WHOIS, SSL checks) have <strong class="text-white">hard timeouts of 7–10 seconds</strong>. External services are never trusted to respond in time — failures fall back gracefully rather than blocking.</p>
+      <div class="mt-3 text-xs font-['Space_Grotesk'] text-emerald-400 bg-emerald-400/10 px-3 py-1.5 rounded-lg inline-block">Zero Trust Control: Never trust external systems to be available</div>
+    </div>
+
+    <div class="glass-panel rounded-xl p-5">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-9 h-9 rounded-lg bg-cyan-400/10 flex items-center justify-center">
+          <span class="material-symbols-outlined text-cyan-400 text-[18px]">cached</span>
+        </div>
+        <h3 class="font-bold text-white font-['Space_Grotesk']">Cache TTL Enforcement</h3>
+      </div>
+      <p class="text-slate-400 text-sm leading-relaxed">Scan results are cached for <strong class="text-white">24 hours maximum</strong> to prevent stale threat data from being served. A newly blacklisted site will be re-evaluated after the TTL expires — the cache is never trusted indefinitely.</p>
+      <div class="mt-3 text-xs font-['Space_Grotesk'] text-emerald-400 bg-emerald-400/10 px-3 py-1.5 rounded-lg inline-block">Zero Trust Control: Treat cached data as potentially outdated</div>
+    </div>
+
+    <div class="glass-panel rounded-xl p-5">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-9 h-9 rounded-lg bg-cyan-400/10 flex items-center justify-center">
+          <span class="material-symbols-outlined text-cyan-400 text-[18px]">public</span>
+        </div>
+        <h3 class="font-bold text-white font-['Space_Grotesk']">CORS Policy</h3>
+      </div>
+      <p class="text-slate-400 text-sm leading-relaxed">Cross-Origin Resource Sharing is configured via <strong class="text-white">FastAPI CORSMiddleware</strong>. In production, origins can be locked to the deployed domain only, preventing unauthorized third-party sites from calling the API.</p>
+      <div class="mt-3 text-xs font-['Space_Grotesk'] text-emerald-400 bg-emerald-400/10 px-3 py-1.5 rounded-lg inline-block">Zero Trust Control: Explicitly allowlist permitted origins</div>
+    </div>
+
+  </div>
+
+  <!-- User History Security -->
+  <div class="glass-panel rounded-xl p-6 mb-8 border border-cyan-400/20">
+    <h2 class="text-lg font-bold text-white font-['Space_Grotesk'] mb-4 flex items-center gap-2">
+      <span class="material-symbols-outlined text-cyan-400">history</span> How User History is Protected
+    </h2>
+    <div class="space-y-3 text-sm text-slate-400">
+      <div class="flex items-start gap-3">
+        <span class="text-emerald-400 mt-0.5 shrink-0">✓</span>
+        <span><strong class="text-white">No user identity stored.</strong> Scans are recorded with URL, score, and timestamp only. There is no user account, no login, and no way to attribute a scan to a person.</span>
+      </div>
+      <div class="flex items-start gap-3">
+        <span class="text-emerald-400 mt-0.5 shrink-0">✓</span>
+        <span><strong class="text-white">No IP logging.</strong> The backend does not store the requesting IP address alongside scan records in the database.</span>
+      </div>
+      <div class="flex items-start gap-3">
+        <span class="text-emerald-400 mt-0.5 shrink-0">✓</span>
+        <span><strong class="text-white">No session cookies.</strong> NebulaScan sets no tracking cookies. Results are passed between pages using <code class="bg-white/10 px-1 rounded">sessionStorage</code>, which is cleared when the browser tab closes.</span>
+      </div>
+      <div class="flex items-start gap-3">
+        <span class="text-emerald-400 mt-0.5 shrink-0">✓</span>
+        <span><strong class="text-white">History is deletable.</strong> Scan records can be deleted individually or cleared entirely via the API — no permanent data lock-in.</span>
+      </div>
+      <div class="flex items-start gap-3">
+        <span class="text-emerald-400 mt-0.5 shrink-0">✓</span>
+        <span><strong class="text-white">Local database only.</strong> The SQLite database (<code class="bg-white/10 px-1 rounded">nebula.db</code>) lives on the server only and is never exposed to the client.</span>
+      </div>
+    </div>
+  </div>
+
+  <p class="text-xs text-slate-600 text-center">NebulaScan Security Report v1.0 · April 2026 · For informational purposes only.</p>
+</main>
+
+<div class="fixed top-1/4 -left-1/4 w-[50%] h-[50%] bg-purple-900/10 blur-[120px] -z-10 rounded-full"></div>
+<script src="/chatbot.js"></script>
+</body>
+</html>
