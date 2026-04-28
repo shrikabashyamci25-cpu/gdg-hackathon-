@@ -140,8 +140,9 @@
 <nav class="hidden md:flex items-center gap-8 font-['Space_Grotesk'] tracking-tight">
 <a class="text-cyan-400 border-b-2 border-cyan-400 pb-1 font-medium" href="#">Dashboard</a>
 <a class="text-slate-400 font-medium hover:text-cyan-300 hover:bg-white/5 transition-all px-2 py-1 rounded" href="#">Scanner</a>
-<a class="text-slate-400 font-medium hover:text-cyan-300 hover:bg-white/5 transition-all px-2 py-1 rounded" href="history.html">History</a>
-<a class="text-slate-400 font-medium hover:text-cyan-300 hover:bg-white/5 transition-all px-2 py-1 rounded" href="security.html">Security</a>
+<a class="text-slate-400 font-medium hover:text-cyan-300 hover:bg-white/5 transition-all px-2 py-1 rounded" href="/history.html">History</a>
+<a class="text-slate-400 font-medium hover:text-cyan-300 hover:bg-white/5 transition-all px-2 py-1 rounded" href="/security.html">Security</a>
+<a class="text-slate-400 font-medium hover:text-cyan-300 hover:bg-white/5 transition-all px-2 py-1 rounded" href="/portfolio.html">Portfolio</a>
 </nav>
 <div class="flex items-center gap-6">
 <!-- Notification Bell -->
@@ -160,7 +161,7 @@
       <div class="px-4 py-6 text-center text-slate-500 text-sm">Loading...</div>
     </div>
     <div class="px-4 py-3 border-t border-white/10 text-center">
-      <a href="history.html" class="text-cyan-400 text-xs hover:underline font-['Space_Grotesk']">View full history →</a>
+      <a href="/history.html" class="text-cyan-400 text-xs hover:underline font-['Space_Grotesk']">View full history →</a>
     </div>
   </div>
 </div>
@@ -353,14 +354,14 @@
 <h4 class="font-h3 text-body-md text-primary">Resources</h4>
 <nav class="flex flex-col gap-xs text-on-surface-variant">
 <a class="hover:text-primary-fixed transition-colors" href="/docs" target="_blank">API Docs</a>
-<a class="hover:text-primary-fixed transition-colors" href="security-report.html">Security Reports</a>
+<a class="hover:text-primary-fixed transition-colors" href="/security-report.html">Security Reports</a>
 </nav>
 </div>
 <div class="space-y-sm">
 <h4 class="font-h3 text-body-md text-primary">Legal</h4>
 <nav class="flex flex-col gap-xs text-on-surface-variant">
-<a class="hover:text-primary-fixed transition-colors" href="privacy-policy.html">Privacy Policy</a>
-<a class="hover:text-primary-fixed transition-colors" href="terms.html">Terms of Service</a>
+<a class="hover:text-primary-fixed transition-colors" href="/privacy-policy.html">Privacy Policy</a>
+<a class="hover:text-primary-fixed transition-colors" href="/terms.html">Terms of Service</a>
 </nav>
 </div>
 </div>
@@ -406,6 +407,43 @@
   }
   checkApiHealth();
 
+  // ── Notification + Sound ────────────────────────────────────────────────
+  function playNotifSound() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const times = [[0, 880], [0.12, 1108], [0.24, 1320]];
+      times.forEach(([when, freq]) => {
+        const osc  = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'sine'; osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.25, ctx.currentTime + when);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + when + 0.25);
+        osc.start(ctx.currentTime + when);
+        osc.stop(ctx.currentTime + when + 0.3);
+      });
+    } catch {}
+  }
+
+  function requestNotifPermission() {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }
+  requestNotifPermission();
+
+  function sendScanNotification(data) {
+    playNotifSound();
+    if ('Notification' in window && Notification.permission === 'granted') {
+      const emoji = data.trust_score >= 70 ? '✅' : data.trust_score >= 40 ? '⚠️' : '🚨';
+      new Notification(`${emoji} NebulaScan Complete`, {
+        body: `${data.domain} — Score: ${data.trust_score}/100 · ${data.verdict_label}`,
+        icon: 'https://cdn-icons-png.flaticon.com/512/2721/2721620.png',
+        badge: 'https://cdn-icons-png.flaticon.com/512/2721/2721620.png',
+      });
+    }
+  }
+
   // ── Submit handler ──────────────────────────────────────────────────────
   async function submitAnalysis() {
     const url = urlInput.value.trim();
@@ -437,6 +475,9 @@
       }
 
       const data = await response.json();
+
+      // Notify user scan is complete
+      sendScanNotification(data);
 
       // Store result and navigate to results page
       sessionStorage.setItem('scanResult', JSON.stringify(data));
@@ -520,6 +561,7 @@
 
   notifBtn.addEventListener('click', (e) => {
     e.stopPropagation();
+    playNotifSound();
     notifPanel.classList.toggle('hidden');
     if (!notifPanel.classList.contains('hidden')) loadNotifications();
   });

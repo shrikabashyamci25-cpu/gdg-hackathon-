@@ -3,6 +3,9 @@
     ? 'http://localhost:8000'
     : window.location.origin;
 
+  const STORAGE_KEY = 'nebula_chat_history';
+  const MSGS_KEY    = 'nebula_chat_msgs';
+
   // ── Inject styles ──────────────────────────────────────────────────────────
   const style = document.createElement('style');
   style.textContent = `
@@ -70,6 +73,14 @@
     #ns-send-btn:hover { background: rgba(21,255,209,0.25); }
     #ns-send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
+    #ns-clear-btn {
+      font-size: 11px; color: #64748b; background: none; border: none;
+      cursor: pointer; padding: 2px 6px; border-radius: 6px;
+      font-family: Inter, sans-serif; margin-left: 4px;
+      transition: color 0.15s;
+    }
+    #ns-clear-btn:hover { color: #f87171; }
+
     .ns-typing { display: flex; gap: 4px; align-items: center; padding: 4px 0; }
     .ns-typing span { width: 6px; height: 6px; border-radius: 50%; background: #15ffd1; opacity: 0.4; animation: ns-bounce 1s infinite; }
     .ns-typing span:nth-child(2) { animation-delay: 0.15s; }
@@ -86,14 +97,12 @@
   // ── Inject HTML ────────────────────────────────────────────────────────────
   const root = document.createElement('div');
   root.innerHTML = `
-    <!-- Floating button -->
-    <button id="ns-fab" title="Ask NebulaAI">
+    <button type="button" id="ns-fab" title="Ask NebulaAI">
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
         <path d="M12 2L9.5 9.5H2L8 13.5L5.5 21L12 17L18.5 21L16 13.5L22 9.5H14.5L12 2Z" fill="#15ffd1" opacity="0.9"/>
       </svg>
     </button>
 
-    <!-- Chat panel -->
     <div id="ns-chat-panel">
       <div id="ns-chat-header">
         <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#1a0050,#006b57);border:1px solid rgba(21,255,209,0.3);display:flex;align-items:center;justify-content:center;">
@@ -103,19 +112,15 @@
           <div style="color:white;font-size:14px;font-weight:700;font-family:'Space Grotesk',sans-serif;">NebulaAI</div>
           <div style="color:#15ffd1;font-size:11px;font-family:'Space Grotesk',sans-serif;">Powered by Google Gemini</div>
         </div>
-        <button id="ns-close-btn" style="margin-left:auto;color:#64748b;font-size:18px;background:none;border:none;cursor:pointer;line-height:1;">✕</button>
+        <button type="button" id="ns-clear-btn" title="Clear chat">Clear</button>
+        <button type="button" id="ns-close-btn" style="color:#64748b;font-size:18px;background:none;border:none;cursor:pointer;line-height:1;">✕</button>
       </div>
 
-      <div id="ns-chat-messages">
-        <div class="ns-msg bot">
-          Hi! I'm <strong>NebulaAI</strong>, your crypto safety advisor powered by <strong>Google Gemini</strong>. 🌐<br><br>
-          Ask me anything about crypto investing, scam detection, or how to stay safe in Web3.
-        </div>
-      </div>
+      <div id="ns-chat-messages"></div>
 
       <div id="ns-chat-input-row">
         <textarea id="ns-chat-input" placeholder="Ask about crypto safety, scams, investing..." rows="1"></textarea>
-        <button id="ns-send-btn">
+        <button type="button" id="ns-send-btn">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2 21L23 12 2 3v7l15 2-15 2z"/></svg>
         </button>
       </div>
@@ -123,24 +128,39 @@
   `;
   document.body.appendChild(root);
 
-  // ── Logic ──────────────────────────────────────────────────────────────────
-  const fab       = document.getElementById('ns-fab');
-  const panel     = document.getElementById('ns-chat-panel');
-  const closeBtn  = document.getElementById('ns-close-btn');
-  const input     = document.getElementById('ns-chat-input');
-  const sendBtn   = document.getElementById('ns-send-btn');
-  const messages  = document.getElementById('ns-chat-messages');
-  let history     = [];
+  // ── State ──────────────────────────────────────────────────────────────────
+  const fab      = document.getElementById('ns-fab');
+  const panel    = document.getElementById('ns-chat-panel');
+  const closeBtn = document.getElementById('ns-close-btn');
+  const clearBtn = document.getElementById('ns-clear-btn');
+  const input    = document.getElementById('ns-chat-input');
+  const sendBtn  = document.getElementById('ns-send-btn');
+  const messages = document.getElementById('ns-chat-messages');
 
-  fab.addEventListener('click', () => panel.classList.toggle('open'));
-  closeBtn.addEventListener('click', () => panel.classList.remove('open'));
+  // Load persisted conversation history (sent to Gemini) from sessionStorage
+  let history = [];
+  try { history = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || '[]'); } catch(e) {}
 
-  input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
-  });
-  sendBtn.addEventListener('click', send);
+  // Load persisted rendered messages from sessionStorage
+  let savedMsgs = [];
+  try { savedMsgs = JSON.parse(sessionStorage.getItem(MSGS_KEY) || '[]'); } catch(e) {}
 
-  function addMsg(text, type) {
+  // ── Restore chat UI ────────────────────────────────────────────────────────
+  function renderSaved() {
+    messages.innerHTML = '';
+    if (savedMsgs.length === 0) {
+      // Show default greeting only when no history
+      const div = document.createElement('div');
+      div.className = 'ns-msg bot';
+      div.innerHTML = `Hi! I'm <strong>NebulaAI</strong>, your crypto safety advisor powered by <strong>Google Gemini</strong>. 🌐<br><br>Ask me anything about crypto investing, scam detection, or how to stay safe in Web3.`;
+      messages.appendChild(div);
+    } else {
+      savedMsgs.forEach(m => _renderMsg(m.text, m.type));
+    }
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  function _renderMsg(text, type) {
     const div = document.createElement('div');
     div.className = `ns-msg ${type}`;
     div.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
@@ -149,6 +169,50 @@
     return div;
   }
 
+  function addMsg(text, type) {
+    const div = _renderMsg(text, type);
+    // Persist rendered message (skip typing indicators / errors from 503)
+    if (type !== 'error') {
+      savedMsgs.push({ text, type });
+      // Keep last 40 rendered messages
+      if (savedMsgs.length > 40) savedMsgs = savedMsgs.slice(-40);
+      sessionStorage.setItem(MSGS_KEY, JSON.stringify(savedMsgs));
+    }
+    return div;
+  }
+
+  function saveHistory() {
+    // Keep last 20 turns to avoid huge payloads
+    if (history.length > 20) history = history.slice(-20);
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+  }
+
+  function clearChat() {
+    history = [];
+    savedMsgs = [];
+    sessionStorage.removeItem(STORAGE_KEY);
+    sessionStorage.removeItem(MSGS_KEY);
+    renderSaved();
+  }
+
+  renderSaved();
+
+  // ── Events ─────────────────────────────────────────────────────────────────
+  fab.addEventListener('click', (e) => { e.preventDefault(); panel.classList.toggle('open'); });
+  closeBtn.addEventListener('click', () => panel.classList.remove('open'));
+  clearBtn.addEventListener('click', clearChat);
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+  });
+  sendBtn.addEventListener('click', send);
+
+  input.addEventListener('input', () => {
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 80) + 'px';
+  });
+
+  // ── Send ───────────────────────────────────────────────────────────────────
   function showTyping() {
     const div = document.createElement('div');
     div.className = 'ns-msg bot';
@@ -173,6 +237,7 @@
 
     addMsg(text, 'user');
     history.push({ role: 'user', content: text });
+    saveHistory();
     showTyping();
 
     try {
@@ -180,31 +245,30 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: history }),
-        signal: AbortSignal.timeout(20000),
+        signal: AbortSignal.timeout(25000),
       });
 
       const data = await res.json();
       removeTyping();
 
       if (!res.ok) {
-        addMsg(data.detail || 'Something went wrong. Try again.', 'error');
+        const errText = data.detail || 'Something went wrong. Try again.';
+        addMsg(errText, 'error');
       } else {
         addMsg(data.reply, 'bot');
         history.push({ role: 'assistant', content: data.reply });
-        if (history.length > 20) history = history.slice(-20);
+        saveHistory();
       }
     } catch (err) {
       removeTyping();
-      addMsg('Could not reach NebulaAI. Make sure the backend is running.', 'error');
+      if (err.name === 'TimeoutError') {
+        addMsg('NebulaAI took too long to respond. Try again.', 'error');
+      } else {
+        addMsg('Could not reach NebulaAI. Make sure the backend is running.', 'error');
+      }
     } finally {
       sendBtn.disabled = false;
       input.focus();
     }
   }
-
-  // Auto-resize textarea
-  input.addEventListener('input', () => {
-    input.style.height = 'auto';
-    input.style.height = Math.min(input.scrollHeight, 80) + 'px';
-  });
 })();

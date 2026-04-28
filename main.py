@@ -241,6 +241,39 @@ class RiskCalcResponse(BaseModel):
     trust_score: int
 
 # ─────────────────────────────────────────────────────────────────────────────
+# CRYPTO WEBSITE DETECTION
+# ─────────────────────────────────────────────────────────────────────────────
+
+CRYPTO_DOMAIN_KEYWORDS = {
+    "bitcoin","btc","ethereum","eth","crypto","coin","token","defi","nft","wallet",
+    "exchange","swap","dex","dao","blockchain","web3","binance","coinbase","kraken",
+    "uniswap","airdrop","yield","stake","mining","altcoin","solana","polygon","matic",
+    "ledger","metamask","opensea","chainlink","cardano","dogecoin","shiba","pepe",
+    "invest","trading","forex","fund","capital","asset","finance","financial",
+}
+
+NON_CRYPTO_DOMAINS = {
+    "google.com","youtube.com","facebook.com","instagram.com","twitter.com","x.com",
+    "tiktok.com","whatsapp.com","amazon.com","netflix.com","linkedin.com","reddit.com",
+    "wikipedia.org","microsoft.com","apple.com","github.com","stackoverflow.com",
+    "gmail.com","yahoo.com","bing.com","spotify.com","twitch.tv","discord.com",
+    "pinterest.com","snapchat.com","zoom.us","dropbox.com","adobe.com","canva.com",
+    "notion.so","slack.com","trello.com","figma.com","medium.com","substack.com",
+    "wordpress.com","shopify.com","ebay.com","flipkart.com","myntra.com","zomato.com",
+    "swiggy.com","paytm.com","upi.com","naukri.com","irctc.co.in","mouthshut.com",
+}
+
+def is_crypto_website(url: str, domain: str) -> bool:
+    url_lower   = url.lower()
+    domain_lower = domain.lower()
+    if domain_lower in NON_CRYPTO_DOMAINS:
+        return False
+    for kw in CRYPTO_DOMAIN_KEYWORDS:
+        if kw in domain_lower or kw in url_lower:
+            return True
+    return False
+
+# ─────────────────────────────────────────────────────────────────────────────
 # FRAUD SCORING ENGINE
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -550,6 +583,22 @@ async def fetch_btc_trend() -> dict:
 async def health():
     return {"status": "ok", "app": settings.APP_NAME, "version": "1.0.0"}
 
+@app.get("/api/v1/prices", tags=["Bitcoin"])
+async def live_prices():
+    """Live prices for top crypto coins from CoinGecko."""
+    ids = "bitcoin,ethereum,solana,binancecoin,cardano,matic-network,ripple,dogecoin"
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            r = await client.get(
+                "https://api.coingecko.com/api/v3/simple/price",
+                params={"ids": ids, "vs_currencies": "usd", "include_24hr_change": "true"},
+                headers={"Accept": "application/json"},
+            )
+            r.raise_for_status()
+            return r.json()
+    except Exception as e:
+        raise HTTPException(502, f"Price fetch failed: {str(e)}")
+
 @app.get("/api/v1/bitcoin/trend", tags=["Bitcoin"])
 async def bitcoin_trend():
     """Live Bitcoin trend analysis using SMA + RSI from CoinGecko."""
@@ -594,7 +643,7 @@ async def chat(payload: ChatRequest):
     try:
         async with httpx.AsyncClient(timeout=15) as client:
             r = await client.post(
-                f"https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key={api_key}",
+                f"https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key={api_key}",
                 json=body,
             )
             r.raise_for_status()
@@ -629,6 +678,19 @@ async def analyze(request: Request, payload: AnalyzeRequest, db: AsyncSession = 
         domain = f"{ext.domain}.{ext.suffix}" if ext.suffix else ext.domain
     except Exception:
         domain = url.split("//")[-1].split("/")[0]
+
+    # Reject non-crypto websites early
+    if not is_crypto_website(url, domain):
+        return AnalyzeResponse(
+            url=url, domain=domain, trust_score=0, status="Not Applicable",
+            verdict_label="NOT A CRYPTO WEBSITE",
+            google_safe_browsing=GSBResult(is_safe=True, threats=[]),
+            whois_data=WhoisResult(), ssl_data=SSLResult(has_ssl=False),
+            risk_flags=["This does not appear to be a cryptocurrency or DeFi platform."],
+            investment_advice="NebulaScan is designed for crypto and DeFi websites only. This site does not appear to be crypto-related.",
+            alternatives=[], risk_tips="Please scan a crypto exchange, DeFi platform, or NFT marketplace.",
+            scan_id=0, scanned_at=datetime.utcnow().isoformat(),
+        )
 
     # Run all external checks concurrently
     gsb, whois, ssl_res = await asyncio.gather(
@@ -824,6 +886,11 @@ async def history():
 async def security():
     from fastapi.responses import HTMLResponse
     return HTMLResponse(_read_html("security.html"))
+
+@app.get("/portfolio.html", include_in_schema=False)
+async def portfolio():
+    from fastapi.responses import HTMLResponse
+    return HTMLResponse(_read_html("portfolio.html"))
 
 @app.get("/security-report.html", include_in_schema=False)
 async def security_report():
